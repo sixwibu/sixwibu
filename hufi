@@ -1,1 +1,936 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
+
+/*...........................................................................................................*/
+
+struct HocVien
+{
+    char maHV[20];        // một chuỗi ký tự (độ dài tối đa là 20) để lưu trữ mã số của học viên.
+    char hoLot[30];       // một chuỗi ký tự (độ dài tối đa là 30) để lưu trữ họ và tên lót của học viên.
+    char ten[20];         // một chuỗi ký tự (độ dài tối đa là 20) để lưu trữ tên của học viên.
+    char ngaySinh[20];    // một chuỗi ký tự (độ dài tối đa là 20) để lưu trữ ngày tháng năm sinh của học viên.
+    char maLop[20];       // một chuỗi ký tự (độ dài tối đa là 20) để lưu trữ mã số của lớp học mà học viên đang học.
+    float diem;           // một số thực để lưu trữ điểm trung bình của học viên.
+    struct HocVien *next; // một con trỏ kiểu HocVien để lưu trữ địa chỉ của học viên tiếp theo trong danh sách liên kết.
+};
+
+/*...........................................................................................................*/
+
+struct LopHoc
+{
+    char maLop[20];      // một chuỗi ký tự (độ dài tối đa là 20) để lưu trữ mã số của lớp học.
+    char tenLop[50];     // một chuỗi ký tự (độ dài tối đa là 50) để lưu trữ tên của lớp học.
+    char lichHoc[10];    // một chuỗi ký tự (độ dài tối đa là 10) để lưu trữ lịch học của lớp học.
+    int hocPhi;          // một số nguyên để lưu trữ học phí của lớp học.
+    struct LopHoc *next; // một con trỏ kiểu LopHoc để lưu trữ địa chỉ của lớp học tiếp theo trong danh sách liên kết.
+};
+
+/*...........................................................................................................*/
+
+// Câu 2.
+void docLopHoc(LopHoc **danhSachLopHoc);
+void docHocVien(HocVien **danhSachHocVien, LopHoc *danhSachLopHoc);
+
+// Câu 3.
+void themHocVien(HocVien **danhSachHocVien, LopHoc *danhSachLopHoc);
+
+// Câu 4.
+void timKiemHocVien(HocVien *danhSachHocVien, LopHoc *danhSachLopHoc);
+void timkiemHV_TenLop(HocVien *danhSachHocVien, LopHoc *danhSachLopHoc);
+void timkiemHV_MaHV(HocVien *danhSachHocVien, char keyword[]);
+void timkiemHV_NamSinh(HocVien *danhSachHocVien, char keyword[]);
+
+// Câu 5.
+void inLopHoc(LopHoc *danhSachLopHoc);
+void inHocVien(HocVien *danhSachHocVien);
+
+// Câu 6.
+void inHocVienDiemCaoNhat(HocVien *danhSachHocVien);
+
+// Câu 7.
+void timHocVien_HocPhiCaoNhat(HocVien *danhSachHocVien, LopHoc *danhSachLopHoc);
+
+// Câu 8.
+void sapXepHocVienTheoMaLopVaDiem(HocVien **danhSachHocVien);
+
+// Câu 9.
+void inHocVienDiemKem(HocVien *danhSachHocVien);
+void swapHocVien(HocVien *p, HocVien *q);
+
+// Câu 10.
+void inDanhSachHocVienCoDiemTren8(HocVien *danhSachHocVien);
+
+// Thêm lớp học
+void themLopMoi(LopHoc **danhSachLopHoc);
+
+//Bổ trợ
+int kiemTraNgayThang(char ngaySinh[]);
+void formatNgay(char ngaySinh[]);
+int kiemTraChuaSo(char *s);
+int demTu(char *s);
+void chuanHoa(char *str);
+
+/*...........................................................................................................*/
+
+int main()
+{
+    LopHoc *danhSachLopHoc = NULL;   // một con trỏ kiểu LopHoc được khởi tạo với giá trị NULL, để lưu trữ danh sách các lớp học.
+    HocVien *danhSachHocVien = NULL; // một con trỏ kiểu HocVien được khởi tạo với giá trị NULL, để lưu trữ danh sách các học viên.
+    int chon;                        // một biến kiểu số nguyên, sẽ được sử dụng để lựa chọn các tùy chọn trong chương trình.
+    char tieuChi[50];                // một mảng ký tự (độ dài tối đa là 50), sẽ được sử dụng để nhập thông tin về tiêu chí tìm kiếm.
+    system("color A");               // hàm system để thay đổi màu nền của cửa sổ console thành màu xanh lá cây.
+#define MAX 100                      // Định nghĩa hằng số MAX với giá trị là 100.
+
+    /*...........................................................................................................*/
+
+    do
+    {
+        system("cls"); // Hàm system("cls") là một lệnh dùng để xóa toàn bộ nội dung của cửa sổ console hiện tại.
+        printf("\n ======================== MENU ==========================\n");
+        printf("|1. Doc thong tin lop hoc tu file.                       |\n");
+        printf("|2. Doc thong tin hoc vien tu file.                      |\n");
+        printf("|3. Them hoc vien vao danh sach.                         |\n");
+        printf("|4. Them lop hoc moi vao danh sach.                      |\n");
+        printf("|5. Tim kiem hoc vien theo tieu chi:                     |\n");
+        printf("|\t5.1 Tim kiem hoc vien theo tieu chi: ten lop.    |\n");
+        printf("|\t5.2 Tim kiem hoc vien theo tieu chi: ma hoc vien.|\n");
+        printf("|\t5.3 Tim kiem hoc vien theo tieu chi: nam sinh.   |\n");
+        printf("|6. In danh sach lop hoc.                                |\n");
+        printf("|7. In danh sach hoc vien.                               |\n");
+        printf("|8. Tim kiem hoc vien co diem cao nhat.                  |\n");
+        printf("|9. Tim hoc vien co hoc phi cao nhat.                    |\n");
+        printf("|10. Sap xep hoc vien theo ma lop va diem giam dan.      |\n");
+        printf("|11. In ra hoc vien diem chua dat.                       |\n");
+        printf("|12. In va luu danh sach cac hoc vien nhan hoc bong.     |\n");
+        printf("|0. Thoat chuong trinh.                                  |");
+        printf("\n ========================================================\n");
+        printf("Ban chon: ");
+        scanf("%d", &chon);
+
+        /*...........................................................................................................*/
+
+        switch (chon)
+        {
+        case 1:
+            docLopHoc(&danhSachLopHoc);
+            printf("\nDa doc xong thong tin lop hoc.");
+            printf("\n\n\n");
+            system("pause"); // để tạm dừng chương trình,đợi người dùng bấm một phím bất kỳ trước khi chương trình kết thúc.
+            break;
+        case 2:
+            docHocVien(&danhSachHocVien, danhSachLopHoc);
+            printf("\nDa doc xong thong tin hoc vien.");
+            printf("\n\n\n");
+            system("pause"); // để tạm dừng chương trình,đợi người dùng bấm một phím bất kỳ trước khi chương trình kết thúc.
+            break;
+        case 3:
+            themHocVien(&danhSachHocVien, danhSachLopHoc);
+            printf("\n\n\n");
+            system("pause"); // để tạm dừng chương trình,đợi người dùng bấm một phím bất kỳ trước khi chương trình kết thúc.
+            break;
+        case 4:
+            themLopMoi(&danhSachLopHoc);
+            printf("\n\n\n");
+            system("pause"); // để tạm dừng chương trình,đợi người dùng bấm một phím bất kỳ trước khi chương trình kết thúc.
+            break;
+        case 5:
+            timKiemHocVien(danhSachHocVien, danhSachLopHoc);
+            printf("\n\n\n");
+            system("pause"); // để tạm dừng chương trình,đợi người dùng bấm một phím bất kỳ trước khi chương trình kết thúc.
+            break;
+        case 6:
+            inLopHoc(danhSachLopHoc);
+            printf("\n\n\n");
+            system("pause"); // để tạm dừng chương trình,đợi người dùng bấm một phím bất kỳ trước khi chương trình kết thúc.
+            break;
+        case 7:
+            inHocVien(danhSachHocVien);
+            printf("\n\n\n");
+            system("pause"); // để tạm dừng chương trình,đợi người dùng bấm một phím bất kỳ trước khi chương trình kết thúc.
+            break;
+        case 8:
+            inHocVienDiemCaoNhat(danhSachHocVien);
+            printf("\n\n\n");
+            system("pause"); // để tạm dừng chương trình,đợi người dùng bấm một phím bất kỳ trước khi chương trình kết thúc.
+            break;
+        case 9:
+            timHocVien_HocPhiCaoNhat(danhSachHocVien, danhSachLopHoc);
+            printf("\n\n\n");
+            system("pause"); // để tạm dừng chương trình,đợi người dùng bấm một phím bất kỳ trước khi chương trình kết thúc.
+            break;
+        case 10:
+            sapXepHocVienTheoMaLopVaDiem(&danhSachHocVien);
+            printf("\n\n\n");
+            system("pause"); // để tạm dừng chương trình,đợi người dùng bấm một phím bất kỳ trước khi chương trình kết thúc.
+            break;
+        case 11:
+            inHocVienDiemKem(danhSachHocVien);
+            printf("\n\n\n");
+            system("pause"); // để tạm dừng chương trình,đợi người dùng bấm một phím bất kỳ trước khi chương trình kết thúc.
+            break;
+        case 12:
+            inDanhSachHocVienCoDiemTren8(danhSachHocVien);
+            printf("\n\n\n");
+            system("pause"); // để tạm dừng chương trình,đợi người dùng bấm một phím bất kỳ trước khi chương trình kết thúc.
+            break;
+        case 0:
+            printf("\nBan da chon thoat chuong trinh.");
+            printf("\n\n\n");
+            system("pause"); // để tạm dừng chương trình,đợi người dùng bấm một phím bất kỳ trước khi chương trình kết thúc.
+            break;
+        default:
+            printf("\nBan chon khong dung. Moi chon lai.");
+            printf("\n\n\n");
+            system("pause"); // để tạm dừng chương trình,đợi người dùng bấm một phím bất kỳ trước khi chương trình kết thúc.
+            break;
+        }
+    } while (chon != 0);
+    return 0;
+}
+
+/*...........................................................................................................*/
+
+// Ham doc thong tin lop hoc tu file
+void docLopHoc(LopHoc **danhSachLopHoc)
+// đọc thông tin lớp học từ "lophoc.txt", lưu vào danh sách liên kết danhSachLopHoc.
+{
+    FILE *f = fopen("lophoc.txt", "r"); // hàm mở "lophoc.txt", sử dụng hàm fopen với chế độ đọc ("r").
+    if (f == NULL)                      // Kiểm tra nếu file không tồn tại hoặc không thể mở được thì in ra thông báo lỗi và thoát khỏi hàm
+    {
+        printf("Loi mo file lophoc.txt");
+        return;
+    }
+
+    char line[100];                      // Khai báo mảng line để lưu từng dòng dữ liệu đọc được từ file
+    while (fgets(line, sizeof(line), f)) // vòng lặp while để đọc các dòng trong "lophoc.txt" bằng cách sử dụng hàm fgets.
+    {
+        LopHoc *node = (LopHoc *)malloc(sizeof(LopHoc));
+        // Với mỗi dòng được đọc vào, đoạn code này tạo một nút mới node của kiểu LopHoc bằng cách sử dụng hàm malloc.
+        sscanf(line, "%[^,],%[^,],%[^,],%d\n", node->maLop, node->tenLop, node->lichHoc, &node->hocPhi);
+        // đoạn code này sử dụng hàm sscanf để tách thông tin về mã lớp, tên lớp, lịch học và học phí từ dòng đó
+        node->next = NULL; // Thiết lập con trỏ next của node mới tạo là NULL
+
+        if (*danhSachLopHoc == NULL) // Nếu danh sách liên kết *danhSachLopHoc chưa có phần tử nào thì gán node làm phần tử đầu tiên của danh sách
+        {
+            *danhSachLopHoc = node;
+        }
+        else // Ngược lại, duyệt danh sách liên kết để thêm node vào cuối danh sách
+        {
+            LopHoc *p = *danhSachLopHoc;
+            while (p->next != NULL)
+            {
+                p = p->next; // nút node mới đọc được sẽ được thêm vào cuối danh sách bằng cách tìm nút cuối cùng của danh sách
+            }
+            p->next = node; // và gán trường next của nó thành nút node.
+        }
+    }
+    fclose(f); // hàm đóng tệp tin bằng cách sử dụng hàm fclose.
+}
+
+/*...........................................................................................................*/
+
+// Ham doc thong tin hoc vien tu file
+void docHocVien(HocVien **danhSachHocVien, LopHoc *danhSachLopHoc)
+// Hàm đọc danh sách học viên từ file "hocvien.txt" và lưu vào danhSachHocVien
+// danhSachLopHoc là danh sách lớp học để kiểm tra mã lớp học của học viên
+{
+    FILE *f = fopen("hocvien.txt", "r"); // hàm mở "hocvien.txt" bằng cách sử dụng hàm fopen với chế độ đọc ("r").
+    if (f == NULL)                       // Nếu không mở được tệp tin
+    {
+        printf("Loi mo file hocvien.txt"); // hàm sẽ in ra thông báo lỗi và thoát khỏi hàm.
+        return;
+    }
+
+    char line[200];                      // hàm đọc từng dòng trong file văn bản bằng lệnh fgets() và lưu trữ vào chuỗi line.
+    while (fgets(line, sizeof(line), f)) // vòng lặp while để đọc các dòng trong "hocvien.txt" bằng cách sử dụng hàm fgets.
+    {
+        HocVien *node = (HocVien *)malloc(sizeof(HocVien));
+        // Với mỗi dòng được đọc vào, đoạn code này tạo một nút mới node của kiểu HocVien bằng cách sử dụng hàm malloc.
+        sscanf(line, "%[^,],%[^,],%[^,],%[^,],%[^,],%f\n", node->maHV, node->hoLot, node->ten, node->ngaySinh, node->maLop, &node->diem);
+        // hàm cấp phát bộ nhớ cho một con trỏ node kiểu HocVien, sử dụng sscanf() để đọc dữ liệu từ chuỗi line vào các trường thông tin của node.
+        node->next = NULL; // Sau đó, hàm đặt giá trị của trường next trong node thành NULL.
+
+        LopHoc *p = danhSachLopHoc;
+        int timThay = 0;
+        while (p != NULL) // Kiểm tra mã lớp học của học viên có tồn tại trong danh sách lớp học hay không
+        {
+            if (strcmpi(p->maLop, node->maLop) == 0)
+            /*hàm tìm kiếm trong danh sách lớp học (được truyền vào như một tham số) xem lớp học của
+            học viên đang được đọc đã tồn tại trong danh sách hay chưa bằng cách so sánh chuỗi maLop của
+            node với chuỗi maLop của từng phần tử trong danh sách lớp học.*/
+            {
+                timThay = 1; // Nếu lớp học tồn tại trong danh sách lớp học, hàm đặt giá trị của biến timThay thành 1.
+                break;
+            }
+            p = p->next;
+        }
+        if (!timThay) // Nếu không tìm thấy
+        {
+            printf("Loi: Ma lop hoc cua hoc vien khong ton tai: %s\n", node->maLop); // hàm in ra thông báo lỗi
+            free(node); // và giải phóng bộ nhớ đã cấp phát cho node bằng lệnh free()
+            continue;  // và sử dụng lệnh continue để chuyển sang học viên tiếp theo trong danh sách.
+        }
+
+        // Nếu tìm thấy node có giá trị maLop = giá trị maLop của node mới, thì thêm node mới vào cuối danh sách HocVien bằng cách:
+        if (*danhSachHocVien == NULL) // Nếu danh sách HocVien rỗng
+        {
+            *danhSachHocVien = node; // gán node mới vào danh sách.
+        }
+        else // Ngược lại,
+        {
+            HocVien *p = *danhSachHocVien;
+            while (p->next != NULL)
+            {
+                p = p->next; // tìm node cuối cùng của danh sách HocVien bằng cách duyệt từ đầu đến cuối danh sách,
+            }
+            p->next = node; // và gán node mới vào trường next của node cuối cùng.
+        }
+    }
+    fclose(f); // hàm fclose sẽ được gọi để đóng file "hocvien.txt".
+}
+
+/*...........................................................................................................*/
+
+// Ham in thong tin lop hoc
+void inLopHoc(LopHoc *danhSachLopHoc)
+// Hàm inHocVien có đầu vào là con trỏ đến danh sách các lớp học danhSachLopHoc.
+{
+    printf("\nDanh sach lop hoc:\n"); // in ra tiêu đề của bảng danh sách lớp học.
+    printf("%-20s %-40s %-20s %-20s\n", "Ma lop", "Ten lop", "Lich hoc", "Hoc phi"); // in ra các tên cột trong bảng danh sách học viên gồm các: "Ma lop", "Ho lop", "Lich hoc", "Hoc phi".
+    while (danhSachLopHoc != NULL)  // vòng lặp while được sử dụng để lặp qua danh sách học, bắt đầu từ danhSachLopHoc.
+    {
+        printf("%-20s %-40s %-20s %-20.0d\n", danhSachLopHoc->maLop, danhSachLopHoc->tenLop, danhSachLopHoc->lichHoc, danhSachLopHoc->hocPhi);
+        // Mỗi lần lặp, lớp học được trỏ tới bởi danhSachLopHoc sẽ được in ra thông tin tương ứng bao gồm các thuộc tính "Ma lop", "Ho lop", "Lich hoc", "Hoc phi".
+        danhSachLopHoc = danhSachLopHoc->next; // danh sách lớp học được cập nhật = cách di chuyển đến học viên tiếp theo trong danh sách
+    }
+}
+/*...........................................................................................................*/
+// Ham in thong tin hoc vien
+void inHocVien(HocVien *danhSachHocVien)
+// Hàm inHocVien có đầu vào là con trỏ đến danh sách các học viên danhSachHocVien.
+{
+    printf("\nDanh sach hoc vien:\n"); // in ra tiêu đề của bảng danh sách học viên.
+    printf("%-20s %-20s %-20s %-20s %-20s %-10s\n", "Ma hoc vien", "Ho lot", "Ten", "Ngay sinh", "Ma lop", "Diem"); // in ra các tên cột trong bảng danh sách học viên gồm các: "Ma hoc vien", "Ho lot", "Ten", "Ngay sinh", "Ma lop" và "Diem".
+    while (danhSachHocVien != NULL) // vòng lặp while được sử dụng để lặp qua danh sách học viên, bắt đầu từ danhSachHocVien.
+    {
+        printf("%-20s %-20s %-20s %-20s %-20s %-10.1f\n", danhSachHocVien->maHV, danhSachHocVien->hoLot, danhSachHocVien->ten, danhSachHocVien->ngaySinh, danhSachHocVien->maLop, danhSachHocVien->diem); // Mỗi lần lặp, học viên được trỏ tới bởi danhSachHocVien sẽ được in ra thông tin tương ứng bao gồm các thuộc tính "Ma hoc vien", "Ho lot", "Ten", "Ngay sinh", "Ma lop" và "Diem".
+        danhSachHocVien = danhSachHocVien->next;                                                                                                                                                          // danh sách học viên được cập nhật bằng cách di chuyển đến học viên tiếp theo trong danh sách (nếu có)
+    }
+}
+
+/*...........................................................................................................*/
+
+// 4. Hàm them thong tin tu hoc vien, thong tin hoc vien duoc nhap tu ban phim
+void themHocVien(HocVien **danhSachHocVien, LopHoc *danhSachLopHoc)
+/*Hàm themHocVien được dùng để thêm một học viên mới vào danh sách danhSachHocVien.
+Hàm này có hai đầu vào, đó là con trỏ đến danh sách học viên danhSachHocVien và con trỏ đến danh sách lớp học danhSachLopHoc.*/
+{
+    HocVien *node = (HocVien *)malloc(sizeof(HocVien)); // cấp phát một vùng nhớ động cho học viên mới bằng cách sử dụng hàm malloc.
+    printf("Nhap thong tin hoc vien:\n");
+    printf("Ma HV: "); // nhập thông tin cho học viên mới gồm: mã học viên.
+    scanf("%s", node->maHV);
+    for (int i = 0; node->maHV[i]; i++)
+    {
+        node->maHV[i] = toupper(node->maHV[i]); // chuyển đổi tất cả các ký tự trong mã học viên thành chữ in hoa bằng hàm toupper.
+    }
+
+    // Nhập thông tin cho học viên mới gồm: họ lót.
+    char hoLot[MAX], ten[MAX]; // Khai báo biến hoLot và ten kiểu char để lưu giá trị họ lót và tên.
+    do
+    {
+        printf("Ho lot: ");
+        fflush(stdin);
+        gets(hoLot);
+        // Kiểm tra họ lót không chứa số.
+        if (kiemTraChuaSo(hoLot))
+        {
+            printf("Ho lot khong hop le. Khong the chua so.\n");
+        }
+        // Kiểm tra họ lót không chứa quá 2 từ.
+        else if (demTu(hoLot) > 2)
+        {
+            printf("Ho lot khong hop le. Khong the chua nhieu hon 2 tu.\n");
+        }
+    } while (kiemTraChuaSo(hoLot) || demTu(hoLot) > 2);
+    chuanHoa(hoLot);// Chuẩn hóa chuỗi họ lót.
+    strcpy(node->hoLot, hoLot); // Sao chép giá trị chuỗi họ lót đã được chuẩn hóa vào trường dữ liệu của node.
+
+    // Nhập thông tin cho học viên mới gồm: tên.
+    do
+    {
+        printf("Ten: ");
+        fflush(stdin);
+        gets(ten);
+        // Kiểm tra tên không chứa số.
+        if (kiemTraChuaSo(ten))
+        {
+            printf("Ten khong hop le. Khong the chua so.\n");
+        }
+        // Kiểm tra tên không chứa quá 1 từ.
+        else if (demTu(ten) > 1)
+        {
+            printf("Ten khong hop le. Khong the chua nhieu hon 2 tu.\n");
+        }
+    } while (kiemTraChuaSo(ten) || demTu(ten) > 1);
+    chuanHoa(ten); // Chuẩn hóa chuỗi tên.
+    strcpy(node->ten, ten); // Sao chép giá trị chuỗi tên đã được chuẩn hóa vào trường dữ liệu của node.
+
+    // Nhập thông tin cho học viên mới gồm: ngày sinh.
+    char ngaySinh[11]; // Khai báo biến ngaySinh kiểu char để lưu giá trị ngày sinh.
+    do
+    {
+        printf("Ngay sinh (dd/mm/yyyy): ");
+        fflush(stdin);
+        gets(ngaySinh);
+        // Kiểm tra ngày sinh có hợp lệ hay không
+        if (!kiemTraNgayThang(ngaySinh))
+        {
+            printf("Ngay sinh khong hop le. Vui long nhap lai.\n");
+        }
+    } while (!kiemTraNgayThang(ngaySinh));
+    formatNgay(ngaySinh); // Định dạng lại chuỗi ngày sinh
+    strcpy(node->ngaySinh, ngaySinh); // Sao chép giá trị chuỗi ngày sinh đã được định dạng vào trường dữ liệu của node.
+
+    // nhập thông tin cho học viên mới gồm: mã lớp học
+    printf("Ma lop hoc: "); 
+    scanf("%s", node->maLop);
+    for (int i = 0; node->maLop[i]; i++)
+    {
+        node->maLop[i] = toupper(node->maLop[i]); // chuyển đổi tất cả các ký tự trong mã lớp học thành chữ in hoa bằng hàm toupper.
+    }
+
+    // nhập thông tin cho học viên mới gồm: điểm số.
+    printf("Diem: "); 
+    scanf("%f", &node->diem);
+    if (node->diem < 0 || node->diem > 10) // Hàm kiểm tra điểm số, nếu không hợp lệ (không nằm trong khoảng từ 0 đến 10)
+    {
+        printf("Diem khong hop le.\n"); // thì dừng việc thêm và in ra thông báo lỗi.
+        return;
+    }
+    node->next = NULL; // Gán giá trị NULL cho trường next của nút học viên mới.
+    printf("\nDa them hoc vien thanh cong! <3\n");
+    printf("\nDanh sach hoc vien:\n");
+    printf("%-20s %-20s %-20s %-20s %-20s %-10s\n", "Ma hoc vien", "Ho lot", "Ten", "Ngay sinh", "Ma lop", "Diem");
+    printf("%-20s %-20s %-20s %-20s %-20s %-10.1f\n", node->maHV, node->hoLot, node->ten, node->ngaySinh, node->maLop, node->diem); // Mỗi lần lặp, học viên được trỏ tới bởi danhSachHocVien sẽ được in ra thông tin tương ứng bao gồm các thuộc tính "Ma hoc vien", "Ho lot", "Ten", "Ngay sinh", "Ma lop" và "Diem".
+    if (*danhSachHocVien == NULL)  // Nếu danh sách danhSachHocVien rỗng
+    {
+        *danhSachHocVien = node; // thì gán giá trị của node cho con trỏ danhSachHocVien.
+    }
+    else
+    {
+        HocVien *p = *danhSachHocVien;
+        while (p->next != NULL) // Ngược lại, nếu danh sách danhSachHocVien không rỗng
+        {
+            p = p->next; // duyệt danh sách để đến cuối cùng
+        }
+        p->next = node; // gán node vào trường next của phần tử cuối cùng.
+    }
+
+    FILE *f = fopen("hocvien.txt", "a"); // Mở tập tin "hocvien.txt" để ghi thêm thông tin học viên mới vào tập tin.
+    if (f == NULL)
+    {
+        printf("Loi mo file hocvien.txt");
+        return;
+    }
+    chuanHoa(node->hoLot); // định dạng chuẩn hóa
+    chuanHoa(node->ten);   // định dạng chuẩn hóa
+    fprintf(f, "%s,%s,%s,%s,%s,%.1f\n", node->maHV, node->hoLot, node->ten, node->ngaySinh, node->maLop, node->diem); // và các trường được phân cách bằng dấu phẩy.
+    fclose(f);             // hàm đóng tệp bằng hàm fclose.
+}
+
+/*...........................................................................................................*/
+
+// 5. Tìm kiếm thông tin học viên theo tiêu chí: tên lớp, mã học viên và năm sinh
+void timKiemHocVien(HocVien *danhSachHocVien, LopHoc *danhSachLopHoc)
+// Hàm này có tham số là con trỏ đến danh sách học viên và danh sách lớp học.
+// Dùng để tìm kiếm thông tin về học viên trong danh sách danhSachHocVien dựa trên thông tin nhập vào từ người dùng.
+{
+    int chon;
+    char keyword[50];
+    printf("Ban muon tim kiem theo:\n");
+    printf("1. Ten lop.\n");
+    printf("2. Ma hoc vien.\n");
+    printf("3. Nam sinh.\n");
+    printf("Ban chon: ");
+    scanf("%d", &chon);
+    switch (chon)
+    {
+    case 1:
+        timkiemHV_TenLop(danhSachHocVien, danhSachLopHoc);
+        break;
+    case 2:
+        timkiemHV_MaHV(danhSachHocVien, keyword);
+        break;
+    case 3:
+        timkiemHV_NamSinh(danhSachHocVien, keyword);
+        break;
+    }
+}
+
+// Hàm tìm kiếm học viên theo tên lớp
+void timkiemHV_TenLop(HocVien *danhSachHocVien, LopHoc *danhSachLopHoc)
+{
+    char tenLop[50]; // Biến tenLop được khai báo là một chuỗi ký tự có độ dài tối đa là 50.
+    printf("Nhap ten lop can tim kiem: ");
+    fflush(stdin);                         // fflush(stdin) được sử dụng để xóa bộ nhớ đệm đầu vào.
+    gets(tenLop);                          // gets() sau đó được sử dụng để lấy chuỗi tên lớp từ người dùng.
+    LopHoc *lopHocCanTim = danhSachLopHoc; // Con trỏ lopHocCanTim được khởi tạo để trỏ vào đầu danh sách lớp học.
+    while (lopHocCanTim != NULL)           // vòng lặp while được sử dụng để tìm kiếm lớp học có tên trùng với tenLop.
+    {
+        if (strcmpi(lopHocCanTim->tenLop, tenLop) == 0) // strcmpi() được sử dụng để so sánh tên lớp đang xét với tên lớp được người dùng nhập vào.
+        {
+            break;
+        }
+        lopHocCanTim = lopHocCanTim->next; // Nếu tìm thấy, con trỏ lopHocCanTim sẽ trỏ vào lớp học đó và vòng lặp sẽ kết thúc.
+    }
+    if (lopHocCanTim == NULL) // Nếu không tìm thấy lớp học nào có tên trùng với tenLop
+    {
+        printf("Khong tim thay lop hoc co ten la %s.\n", tenLop); // một thông báo sẽ được in ra và hàm sẽ kết thúc.
+        return;
+    }
+    HocVien *hocVien = danhSachHocVien; // Con trỏ hocVien được khởi tạo để trỏ vào đầu danh sách học viên.
+    printf("%-20s %-20s %-20s %-20s %-20s %-10s\n", "Ma hoc vien", "Ho lot", "Ten", "Ngay sinh", "Ma lop", "Diem");
+    while (hocVien != NULL) // vòng lặp while được sử dụng để duyệt qua toàn bộ danh sách học viên.
+    {
+        if (strcmpi(hocVien->maLop, lopHocCanTim->maLop) == 0) // được sử dụng để so sánh mã lớp của học viên đang xét với mã lớp của lớp học cần tìm kiếm.
+                                                               // Nếu hai mã lớp này trùng nhau, thông tin của học viên đó sẽ được in ra.
+        {
+            printf("%-20s %-20s %-20s %-20s %-20s %-10.1f\n", hocVien->maHV, hocVien->hoLot, hocVien->ten, hocVien->ngaySinh, hocVien->maLop, hocVien->diem);
+        }
+        hocVien = hocVien->next;
+    }
+}
+
+// Hàm tìm kiếm học viên theo mã học viên
+void timkiemHV_MaHV(HocVien *danhSachHocVien, char keyword[])
+{
+    printf("Nhap ma hoc vien: "); // nhập vào mã học viên cần tìm kiếm
+    scanf("%s", keyword);         // Sử dụng hàm scanf để lấy chuỗi ký tự từ bàn phím và lưu vào biến keyword.
+    printf("Danh sach hoc vien:\n");
+    printf("%-20s %-20s %-20s %-20s %-20s %-10s\n", "Ma hoc vien", "Ho lot", "Ten", "Ngay sinh", "Ma lop", "Diem"); // In ra tiêu đề các cột của bảng danh sách học viên.
+    for (HocVien *p = danhSachHocVien; p != NULL; p = p->next)
+    {
+        if (strcmpi(p->maHV, keyword) == 0)
+        // Hàm strcmpi() được sử dụng để so sánh chuỗi ký tự và trả về 0 nếu hai chuỗi giống nhau.
+        {
+            printf("%-20s %-20s %-20s %-20s %-20s %-10.1f\n", p->maHV, p->hoLot, p->ten, p->ngaySinh, p->maLop, p->diem);
+            // Nếu học viên thuộc lớp có mã trùng với chuỗi keyword được nhập vào thì in ra thông tin của học viên đó.
+            break;
+        }
+    }
+}
+
+// Hàm tìm kiếm học viên theo năm sinh
+void timkiemHV_NamSinh(HocVien *danhSachHocVien, char keyword[])
+{
+    printf("Nhap nam sinh: "); // nhập vào năm sinh cần tìm kiếm
+    scanf("%s", keyword);      // Sử dụng hàm scanf để lấy chuỗi ký tự từ bàn phím và lưu vào biến keyword.
+    printf("Danh sach hoc vien:\n");
+    printf("%-20s %-20s %-20s %-20s %-20s %-10s\n", "Ma hoc vien", "Ho lot", "Ten", "Ngay sinh", "Ma lop", "Diem"); // In ra tiêu đề các cột của bảng danh sách học viên.
+    for (HocVien *p = danhSachHocVien; p != NULL; p = p->next)
+    {
+        if (strstr(p->ngaySinh, keyword) != NULL)
+        // Hàm strcmpi() được sử dụng để so sánh chuỗi ký tự và trả về 0 nếu hai chuỗi giống nhau.
+        {
+            printf("%-20s %-20s %-20s %-20s %-20s %-10.1f\n", p->maHV, p->hoLot, p->ten, p->ngaySinh, p->maLop, p->diem);
+            // Nếu học viên thuộc lớp có mã trùng với chuỗi keyword được nhập vào thì in ra thông tin của học viên đó.
+        }
+    }
+}
+
+/*...........................................................................................................*/
+
+// 6. Tìm thông tin học viên có điểm cao nhất
+void inHocVienDiemCaoNhat(HocVien *danhSachHocVien)
+// Đoạn code này có chức năng tìm và in ra thông tin của học viên có điểm cao nhất trong danh sách các học viên.
+{
+    if (danhSachHocVien == NULL) // kiểm tra xem danh sách này có rỗng hay không, nếu rỗng, nó sẽ in ra thông báo và thoát khỏi hàm.
+    {
+        printf("Danh sach hoc vien rong.\n");
+        return;
+    }
+    HocVien *hocVienDiemCaoNhat = danhSachHocVien; // Khởi tạo học viên có điểm cao nhất ban đầu là học viên đầu tiên trong danh sách.
+    HocVien *hocVien = danhSachHocVien->next;      // Khởi tạo học viên là học viên thứ 2 trong danh sách.
+    while (hocVien != NULL)                        // Lặp qua danh sách học viên.
+    {
+        if (hocVien->diem > hocVienDiemCaoNhat->diem) // Nếu điểm của học viên hiện tại lớn hơn điểm của học viên có điểm cao nhất, cập nhật học viên có điểm cao nhất.
+        {
+            hocVienDiemCaoNhat = hocVien;
+        }
+        hocVien = hocVien->next; // Chuyển sang học viên tiếp theo trong danh sách.
+    }
+    printf("Hoc vien co diem cao nhat:\n"); // In ra thông tin của học viên có điểm cao nhất.
+    printf("%-20s %-20s %-20s %-20s %-20s %-10s\n", "Ma hoc vien", "Ho lot", "Ten", "Ngay sinh", "Ma lop", "Diem"); // In ra tiêu đề các trường thông tin của học viên.
+    hocVien = danhSachHocVien;  // Thiết lập lại con trỏ học viên để lặp qua danh sách học viên.
+    while (hocVien != NULL)  // Lặp qua danh sách học viên.
+    {
+        if (hocVien->diem == hocVienDiemCaoNhat->diem) // Nếu điểm của học viên bằng điểm cao nhất, in ra thông tin của học viên đó.
+        {
+            printf("%-20s %-20s %-20s %-20s %-20s %-10.1f\n", hocVien->maHV, hocVien->hoLot, hocVien->ten, hocVien->ngaySinh, hocVien->maLop, hocVien->diem); // In ra thông tin của học viên đang được xét đến.
+        }
+        hocVien = hocVien->next; // Chuyển sang học viên tiếp theo trong danh sách.
+    }
+}
+
+/*...........................................................................................................*/
+
+// 7. Tìm thông tin học viên trong lớp học có học phí cao nhất
+void timHocVien_HocPhiCaoNhat(HocVien *danhSachHocVien, LopHoc *danhSachLopHoc)
+// Đây là khai báo hàm, với danhSachHocVien và danhSachLopHoc là con trỏ trỏ đến danh sách các học viên và danh sách các lớp học tương ứng.
+// Hàm này có chức năng tìm và in ra thông tin của lớp học có học phí cao nhất trong danh sách các lớp học, và danh sách các học viên trong lớp học đó.
+{
+    // Tìm lớp học có học phí cao nhất
+    LopHoc *lopHocCaoNhat = danhSachLopHoc; // Khởi tạo lớp học có học phí cao nhất ban đầu là lớp học đầu tiên trong danh sách.
+    LopHoc *lopHoc = danhSachLopHoc->next;  // Khởi tạo lớp học là lớp học thứ 2 trong danh sách.
+    while (lopHoc != NULL)                  // Lặp qua danh sách lớp học.
+    {
+        if (lopHoc->hocPhi > lopHocCaoNhat->hocPhi)
+        // Nếu học phí của lớp học hiện tại lớn hơn học phí của lớp học có học phí cao nhất, cập nhật lớp học có học phí cao nhất.
+        {
+            lopHocCaoNhat = lopHoc;
+        }
+        lopHoc = lopHoc->next; // Chuyển sang lớp học tiếp theo trong danh sách.
+    }
+    printf("Lop hoc co hoc phi cao nhat la: %s - %s\n", lopHocCaoNhat->maLop, lopHocCaoNhat->tenLop); // In thông tin lớp học có học phí cao nhất
+    // Tìm các học viên trong lớp học có học phí cao nhất
+    HocVien *node = danhSachHocVien->next; // Khởi tạo học viên là học viên đầu tiên trong danh sách.
+    while (node != NULL)                   // Lặp qua danh sách học viên.
+    {
+        if (strcmpi(node->maLop, lopHocCaoNhat->maLop) == 0)
+        // Nếu mã lớp của học viên hiện tại trùng với mã lớp của lớp học có học phí cao nhất, in ra thông tin của học viên đó.
+        {
+            printf("%-20s %-20s %-20s %-20s %-20s %-10s\n", "Ma hoc vien", "Ho lot", "Ten", "Ngay sinh", "Ma lop", "Diem");  // In ra tiêu đề các trường thông tin của học viên.
+            printf("%-20s %-20s %-20s %-20s %-20s %-10.1f\n", node->maHV, node->hoLot, node->ten, node->ngaySinh, node->maLop, node->diem); // in ra thông tin của học viên đang được xét đến.
+        }
+        node = node->next; // Chuyển sang học viên tiếp theo trong danh sách.
+    }
+}
+
+/*...........................................................................................................*/
+
+// 8. sắp xếp danh sách học viên theo mã lớp, các học viên học cùng một lớp sắp xếp điểm giảm dần
+void sapXepHocVienTheoMaLopVaDiem(HocVien **danhSachHocVien)
+// Đây là khai báo hàm, với danhSachHocVien là con trỏ trỏ đến danh sách các học viên.
+// Hàm này có chức năng sắp xếp danh sách học viên theo mã lớp và điểm theo thứ tự tăng dần của mã lớp và giảm dần của điểm.
+{
+    HocVien *p;
+    int flag = 1; // Khai báo con trỏ học viên và biến cờ hiệu. Ban đầu, đặt biến cờ hiệu bằng 1 để bắt đầu vòng lặp.
+    while (flag)  // Bắt đầu vòng lặp nếu biến cờ hiệu bằng 1.
+    {
+        flag = 0;
+        p = *danhSachHocVien;   // Thiết lập lại biến cờ hiệu và con trỏ học viên ban đầu để bắt đầu lặp lại vòng lặp.
+        while (p->next != NULL) // Lặp qua danh sách học viên.
+        {
+            if (strcmpi(p->maLop, p->next->maLop) > 0)
+            // Nếu mã lớp của học viên hiện tại lớn hơn mã lớp của học viên kế tiếp, hoán đổi vị trí hai học viên và đặt lại biến cờ hiệu bằng 1.
+            {
+                swapHocVien(p, p->next);
+                flag = 1;
+            }
+            else if (strcmpi(p->maLop, p->next->maLop) == 0) // nếu hai học viên cùng mã lớp
+            {
+                if (p->diem < p->next->diem)
+                // Nếu điểm của học viên hiện tại nhỏ hơn điểm của học viên kế tiếp, hoán đổi vị trí hai học viên và đặt lại biến cờ hiệu bằng 1.
+                {
+                    swapHocVien(p, p->next);
+                    flag = 1;
+                }
+            }
+            p = p->next; // Chuyển sang học viên tiếp theo trong danh sách.
+        }
+    }
+    // In danh sách học viên sau khi sắp xếp
+    printf("%-20s %-20s %-20s %-20s %-20s %-10s\n", "Ma hoc vien", "Ho lot", "Ten", "Ngay sinh", "Ma lop", "Diem"); // In ra tiêu đề các trường thông tin của học viên.
+    p = *danhSachHocVien; // Thiết lập lại con trỏ học viên ban đầu để lặp qua danh sách học viên.
+    while (p != NULL)   // Lặp qua danh sách học viên.
+    {
+        printf("%-20s %-20s %-20s %-20s %-20s %-10.1f\n", p->maHV, p->hoLot, p->ten, p->ngaySinh, p->maLop, p->diem); // In ra thông tin của học viên.
+        p = p->next; // Chuyển sang học viên tiếp theo trong danh sách.
+    }
+}
+
+/*...........................................................................................................*/
+
+// 9. In ra thông tin các học viên có điểm chưa đạt (<5) sắp xếp kết qủa giảm dần theo tên học viên
+void swapHocVien(HocVien *p, HocVien *q)
+// Đây là khai báo hàm, với p và q là hai con trỏ học viên cần hoán đổi thông tin.
+{
+    HocVien temp;                       // Khai báo một biến tạm temp kiểu HocVien để lưu trữ thông tin của học viên được trỏ đến bởi con trỏ p.
+    strcpy(temp.maHV, p->maHV);         // Sao chép thông tin mã học viên của học viên được trỏ đến bởi con trỏ p vào biến temp.
+    strcpy(temp.hoLot, p->hoLot);       // Sao chép thông tin họ và tên lót của học viên được trỏ đến bởi con trỏ p vào biến temp.
+    strcpy(temp.ten, p->ten);           // Sao chép thông tin tên của học viên được trỏ đến bởi con trỏ p vào biến temp.
+    strcpy(temp.ngaySinh, p->ngaySinh); // Sao chép thông tin ngày sinh của học viên được trỏ đến bởi con trỏ p vào biến temp.
+    strcpy(temp.maLop, p->maLop);       // Sao chép thông tin mã lớp của học viên được trỏ đến bởi con trỏ p vào biến temp.
+    temp.diem = p->diem;                // Sao chép thông tin điểm của học viên được trỏ đến bởi con trỏ p vào biến temp.
+
+    strcpy(p->maHV, q->maHV);         // Sao chép thông tin mã học viên của học viên được trỏ đến bởi con trỏ q vào học viên được trỏ đến bởi con trỏ p.
+    strcpy(p->hoLot, q->hoLot);       // Sao chép thông tin họ và tên lót của học viên được trỏ đến bởi con trỏ q vào học viên được trỏ đến bởi con trỏ p.
+    strcpy(p->ten, q->ten);           // Sao chép thông tin tên của học viên được trỏ đến bởi con trỏ q vào học viên được trỏ đến bởi con trỏ p.
+    strcpy(p->ngaySinh, q->ngaySinh); // Sao chép thông tin ngày sinh của học viên được trỏ đến bởi con trỏ q vào học viên được trỏ đến bởi con trỏ p.
+    strcpy(p->maLop, q->maLop);       // Sao chép thông tin mã lớp của học viên được trỏ đến bởi con trỏ q vào học viên được trỏ đến bởi con trỏ p.
+    p->diem = q->diem;                // Sao chép thông tin điểm của học viên được trỏ đến bởi con trỏ q vào học viên được trỏ đến bởi con trỏ p.
+
+    strcpy(q->maHV, temp.maHV);         // Sao chép thông tin mã học viên của biến temp vào trường mã học viên của đối tượng q.
+    strcpy(q->hoLot, temp.hoLot);       // Sao chép thông tin họ tên lót của biến temp vào trường họ tên lót của đối tượng q.
+    strcpy(q->ten, temp.ten);           // Sao chép thông tin tên của biến temp vào trường tên của đối tượng q.
+    strcpy(q->ngaySinh, temp.ngaySinh); // Sao chép thông tin ngày sinh của biến temp vào trường ngày sinh của đối tượng q.
+    strcpy(q->maLop, temp.maLop);       // Sao chép thông tin mã lớp của biến temp vào trường mã lớp của đối tượng q.
+    q->diem = temp.diem;                // Sao chép thông tin điểm của biến temp vào trường điểm của đối tượng q.
+}
+
+/*...........................................................................................................*/
+
+void inHocVienDiemKem(HocVien *danhSachHocVien)
+// Đây là khai báo hàm, với danhSachHocVien là con trỏ trỏ đến danh sách các học viên.
+/* Đoạn code trên có chức năng in ra danh sách học viên có điểm thi dưới 5 (điểm kém), 
+   sắp xếp danh sách này theo tên học viên và giải phóng danh sách sau khi in.*/
+{
+    HocVien *hocVienDiemKem = NULL;                            // Khởi tạo danh sách học viên điểm kém
+    for (HocVien *p = danhSachHocVien; p != NULL; p = p->next) // Lặp qua danh sách học viên.
+    {
+        if (p->diem < 5) // Nếu điểm số của học viên hiện tại nhỏ hơn 5.
+        {
+            HocVien *node = (HocVien *)malloc(sizeof(HocVien)); // Cấp phát bộ nhớ cho một nút mới trong danh sách học viên điểm kém.
+            strcpy(node->maHV, p->maHV);
+            strcpy(node->hoLot, p->hoLot);
+            strcpy(node->ten, p->ten);
+            strcpy(node->ngaySinh, p->ngaySinh);
+            strcpy(node->maLop, p->maLop);
+            node->diem = p->diem;
+            node->next = NULL;          // Sao chép thông tin của học viên hiện tại sang nút mới và gán con trỏ next của nút mới bằng NULL.
+            if (hocVienDiemKem == NULL) // Nếu danh sách học viên điểm kém rỗng.
+            {
+                hocVienDiemKem = node; // Gán nút mới vào danh sách.
+            }
+            else // Nếu danh sách học viên điểm kém không rỗng.
+            {
+                HocVien *q = hocVienDiemKem;
+                while (q->next != NULL)
+                {
+                    q = q->next;
+                }
+                q->next = node;
+                // Duyệt qua danh sách học viên điểm kém để thêm nút mới vào cuối danh sách.
+            }
+        }
+    }
+    // Sắp xếp danh sách học viên điểm kém giảm dần theo tên học viên
+    for (HocVien *p = hocVienDiemKem; p != NULL; p = p->next) // Lặp qua danh sách học viên điểm kém.
+    {
+        for (HocVien *q = p->next; q != NULL; q = q->next) // Lặp qua danh sách học viên điểm kém bắt đầu từ nút tiếp theo của nút hiện tại.
+        {
+            if (strcmpi(p->ten, q->ten) < 0) // Nếu tên học viên của nút hiện tại nhỏ hơn tên học viên của nút tiếp theo.
+            {
+                swapHocVien(p, q); // Đổi chỗ hai nút hiện tại và tiếp theo để sắp xếp danh sách theo thứ tự giảm dần theo tên học viên
+            }
+        }
+    }
+    printf("Danh sach hoc vien diem kem:\n"); // In ra tiêu đề danh sách các học viên điểm kém.
+    printf("%-20s %-20s %-20s %-20s %-20s %-10s\n", "Ma hoc vien", "Ho lot", "Ten", "Ngay sinh", "Ma lop", "Diem"); // n ra tiêu đề các trường thông tin của học viên.
+    for (HocVien *p = hocVienDiemKem; p != NULL; p = p->next) // Lặp qua danh sách các học viên điểm kém.
+    {
+        printf("%-20s %-20s %-20s %-20s %-20s %-10.1f\n", p->maHV, p->hoLot, p->ten, p->ngaySinh, p->maLop, p->diem); // In ra thông tin của học viên đang được xét đến.
+    }
+
+    HocVien *p = hocVienDiemKem; // Khởi tạo con trỏ p trỏ đến danh sách các học viên điểm kém.
+    while (p != NULL)            // Lặp qua danh sách các học viên điểm kém.
+    {
+        hocVienDiemKem = hocVienDiemKem->next; // Cập nhật danh sách các học viên điểm kém.
+        free(p);                               // Giải phóng bộ nhớ của học viên đang được xét đến.
+        p = hocVienDiemKem;                    // Chuyển sang học viên điểm kém tiếp theo trong danh sách.
+    }
+}
+
+/*...........................................................................................................*/
+
+// 10. In ra màn hình danh sách các học viên đạt học bổng (>=8) và luu danh sách học viên này vào file có tên là dshocbong.txt
+void inDanhSachHocVienCoDiemTren8(HocVien *danhSachHocVien)
+// Khai báo hàm với tham số là con trỏ đến danh sách các học viên.
+// Hàm này có chức năng in ra danh sách các học viên có điểm trung bình lớn hơn hoặc bằng 8 và lưu danh sách này vào file "dshocbong.txt".
+{
+    FILE *f = fopen("dshocbong.txt", "w"); // Mở file "dshocbong.txt" để ghi dữ liệu vào.
+    if (f == NULL)                         // Nếu không mở được file
+    {
+        printf("Khong the mo file dshocbong.txt"); // in ra thông báo lỗi và kết thúc hàm.
+        return;
+    }
+    HocVien *p = danhSachHocVien; // Khởi tạo con trỏ p trỏ đến đầu danh sách các học viên.
+    printf("\nDanh sach hoc vien dat hoc bong:\n"); // In ra tiêu đề danh sách các học viên đạt học bổng.
+    printf("%-20s %-20s %-20s %-20s %-20s %-10s\n", "Ma hoc vien", "Ho lot", "Ten", "Ngay sinh", "Ma lop", "Diem"); // In ra tiêu đề các trường thông tin của các học viên đạt học bổng.
+    while (p != NULL) // Lặp qua danh sách các học viên.
+    {
+        if (p->diem >= 8.0)
+        // Nếu điểm trung bình của học viên đó lớn hơn hoặc bằng 8, in ra thông tin học viên đó và ghi thông tin của học viên đó vào file "dshocbong.txt".
+        {
+            printf("%-20s %-20s %-20s %-20s %-20s %-10.1f\n", p->maHV, p->hoLot, p->ten, p->ngaySinh, p->maLop, p->diem); // In ra thông tin của học viên đang được xét đến.
+            fprintf(f, "%s,%s,%s,%s,%s,%.2f\n", p->maHV, p->hoLot, p->ten, p->ngaySinh, p->maLop, p->diem); // Ghi thông tin của học viên đó vào file "dshocbong.txt" với định dạng mã học viên, họ tên, ngày sinh, mã lớp và điểm trung bình.
+        }
+        p = p->next; // Chuyển sang học viên tiếp theo trong danh sách.
+    }
+    fclose(f); // Đóng file "dshocbong.txt" sau khi đã ghi xong danh sách các học viên đạt học bổng.
+}
+
+/*...........................................................................................................*/
+
+void chuanHoa(char *str)
+// Đây là khai báo hàm chuanHoa, với tham số đầu vào là một con trỏ trỏ đến một chuỗi kí tự.
+{
+    int i;                    // Khai báo biến i kiểu int để sử dụng trong vòng lặp for.
+    int len = strlen(str);    // Đo độ dài của chuỗi kí tự đầu vào bằng hàm strlen trong thư viện string.h.
+    str[0] = toupper(str[0]); // Chuyển kí tự đầu tiên của chuỗi thành chữ in bằng hàm toupper trong thư viện ctype.h.
+
+    for (i = 1; i < len; i++) // Bắt đầu vòng lặp for, bắt đầu từ kí tự thứ 2 của chuỗi.
+    {
+        if (str[i - 1] == ' ') // Kiểm tra xem kí tự trước đó có phải là khoảng trắng hay không.
+        {
+            str[i] = toupper(str[i]); // Nếu kí tự trước đó là khoảng trắng, chuyển kí tự hiện tại thành chữ in bằng hàm toupper.
+        }
+        else // Nếu không phải, chuyển kí tự hiện tại thành chữ thường bằng hàm tolower trong thư viện ctype.h.
+        {
+            str[i] = tolower(str[i]); // chuyển kí tự hiện tại thành chữ thường
+        }
+    }
+}
+
+/*...........................................................................................................*/
+// Hàm thêm lớp học mới vào danh sách lớp học.
+void themLopMoi(LopHoc **danhSachLopHoc)
+{
+    FILE *fp = fopen("lophoc.txt", "a"); // Mở file "lophoc.txt" với chế độ ghi thêm vào cuối file.
+    if (fp == NULL)
+    {
+        printf("Khong the mo file\n");
+        return;
+    }
+
+    LopHoc *lopMoi = (LopHoc *)malloc(sizeof(LopHoc)); // Cấp phát động vùng nhớ cho lớp học mới.
+    if (lopMoi == NULL)
+    {
+        printf("Khong the cap phat bo nho\n");
+        fclose(fp);
+        return;
+    }
+    // Nhập thông tin cho lớp học mới gồm: mã lớp, tên lớp, lịch học và học phí.
+    printf("Nhap ma lop: ");
+    fflush(stdin);
+    scanf("%s", lopMoi->maLop);
+    for (int i = 0; lopMoi->maLop[i]; i++)
+    {
+        lopMoi->maLop[i] = toupper(lopMoi->maLop[i]);
+    }
+
+    printf("Nhap ten lop: ");
+    fflush(stdin);
+    fgets(lopMoi->tenLop, sizeof(lopMoi->tenLop), stdin);
+    lopMoi->tenLop[strcspn(lopMoi->tenLop, "\n")] = '\0'; // Xóa ký tự xuống dòng ở cuối chuỗi.
+
+
+    printf("Nhap lich hoc: ");
+    fflush(stdin);
+    scanf("%s", lopMoi->lichHoc);
+    printf("Nhap hoc phi: ");
+    scanf("%d", &lopMoi->hocPhi);
+
+    chuanHoa(lopMoi->tenLop);  // Chuẩn hóa chuỗi tên lớp 
+    chuanHoa(lopMoi->lichHoc); // Chuẩn hóa chuỗi lịch học.
+
+    lopMoi->next = NULL; // Gán con trỏ next của lớp học mới thành NULL.
+
+    if (*danhSachLopHoc == NULL) // Thêm lớp học mới vào cuối danh sách lớp học.
+    {
+        *danhSachLopHoc = lopMoi;
+    }
+    else
+    {
+        LopHoc *p = *danhSachLopHoc;
+        while (p->next != NULL)
+        {
+            p = p->next;
+        }
+        p->next = lopMoi;
+    }
+
+    fprintf(fp, "%s,%s,%s,%d\n", lopMoi->maLop, lopMoi->tenLop, lopMoi->lichHoc, lopMoi->hocPhi); // Ghi thông tin lớp học mới vào file "lophoc.txt".
+
+    fclose(fp); // Đóng file "lophoc.txt".
+
+    printf("Them lop moi thanh cong!\n");
+    // Mở lại file "lophoc.txt" với chế độ đọc.
+    fp = fopen("lophoc.txt", "r");
+    if (fp == NULL)
+    {
+        printf("Khong the mo file\n");
+        return;
+    }
+    // In danh sách lớp học.
+    printf("\nDanh sach lop hoc:\n");
+    inLopHoc(*danhSachLopHoc);
+
+    fclose(fp); // Đóng file "lophoc.txt".
+
+    }
+
+// Hàm kiểm tra ngày tháng
+int kiemTraNgayThang(char ngaySinh[])
+{
+    int ngay, thang, nam;
+    if (sscanf(ngaySinh, "%d/%d/%d", &ngay, &thang, &nam) != 3)
+    { // kiểm tra định dạng ngày tháng
+        return 0;
+    }
+    if (ngay < 1 || ngay > 31 || thang < 1 || thang > 12 || nam < 1900 || nam > 2023)
+    { // kiểm tra giá trị hợp lệ của ngày tháng
+        return 0;
+    }
+    return 1;
+}
+
+// Hàm định dạng ngày
+void formatNgay(char ngaySinh[])
+{
+    char ngay[3], thang[3], nam[5];
+    sscanf(ngaySinh, "%[^/]/%[^/]/%s", ngay, thang, nam);            // tách ngày, tháng, năm
+    sprintf(ngaySinh, "%02d/%02d/%s", atoi(ngay), atoi(thang), nam); // định dạng ngày tháng
+}
+
+//Hàm kiểm tra chuỗi chứa số hay không
+int kiemTraChuaSo(char *s) // Hàm kiểm tra chuỗi s có chứa số hay không.
+{
+    int n = strlen(s);
+    for (int i = 0; i < n; i++)
+    {
+        if (isdigit(s[i])) // Kiểm tra xem ký tự thứ i có phải là số hay không.
+        {
+            return 1; // Nếu có, trả về 1.
+        }
+    }
+    return 0; // Ngược lại, trả về 0.
+}
+
+//Hàm đếm số từ
+int demTu(char *s) // Hàm đếm số từ trong chuỗi s.
+{
+    int n = strlen(s), dem = 0;
+    if (n > 0 && !isspace(s[0])) // Nếu ký tự đầu tiên không phải khoảng trắng.
+    {
+        dem = 1; // Thì tăng biến đếm lên 1.
+    }
+    for (int i = 0; i < n; i++)
+    {
+        if (isspace(s[i])) // Nếu ký tự thứ i là khoảng trắng.
+        {
+            while (i < n && isspace(s[i])) // Bỏ qua các ký tự khoảng trắng tiếp theo.
+            {
+                i++;
+            }
+            if (i < n) // Nếu ký tự tiếp theo không phải ký tự kết thúc chuỗi.
+            {
+                dem++; // Thì tăng biến đếm lên 1.
+            }
+        }
+    }
+    return dem; // Trả về số từ trong chuỗi s.
+}
 
